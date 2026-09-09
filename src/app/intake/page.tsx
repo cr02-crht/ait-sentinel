@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   CheckCircle2,
   AlertCircle,
-  ArrowLeft,
   Loader2,
   Send,
   Copy,
@@ -121,49 +120,49 @@ export default function IntakePage() {
 
   if (submittedData) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto space-y-8">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm text-center">
+          <div className="bg-card border border-border rounded-2xl p-8 shadow-sm text-center">
             <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-950 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-6">
               <CheckCircle2 className="w-10 h-10" />
             </div>
 
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
               Request submitted!
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 max-w-lg mx-auto mb-6 text-sm">
+            <p className="text-muted-foreground max-w-lg mx-auto mb-6 text-sm">
               Your automation request has been logged into the queue for review.
             </p>
 
-            <div className="inline-flex items-center gap-3 bg-zinc-100 dark:bg-zinc-800/80 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 mb-8">
-              <span className="text-xs uppercase font-medium tracking-wider text-zinc-500">Request ID</span>
-              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 text-base">
+            <div className="inline-flex items-center gap-3 bg-muted px-4 py-2.5 rounded-xl border border-border mb-8">
+              <span className="text-xs uppercase font-medium tracking-wider text-muted-foreground">Request ID</span>
+              <span className="font-mono font-semibold text-foreground text-base">
                 {submittedData.requestId}
               </span>
               <button
                 onClick={handleCopyId}
                 type="button"
-                className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors text-zinc-500"
+                className="p-1 hover:bg-accent rounded transition-colors text-muted-foreground"
                 title="Copy Request ID"
               >
                 {copiedId ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
 
-            <div className="text-left bg-zinc-50 dark:bg-zinc-950/60 rounded-xl p-6 border border-zinc-200 dark:border-zinc-800 mb-8 space-y-4 text-sm">
-              <div className="flex justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
-                <span className="text-zinc-500">Title:</span>
-                <span className="font-medium text-zinc-900 dark:text-zinc-100 text-right">{submittedData.data.title}</span>
+            <div className="text-left bg-muted/60 rounded-xl p-6 border border-border mb-8 space-y-4 text-sm">
+              <div className="flex justify-between border-b border-border pb-3">
+                <span className="text-muted-foreground">Title:</span>
+                <span className="font-medium text-foreground text-right">{submittedData.data.title}</span>
               </div>
-              <div className="flex justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
-                <span className="text-zinc-500">Requester:</span>
-                <span className="text-zinc-900 dark:text-zinc-100">
+              <div className="flex justify-between border-b border-border pb-3">
+                <span className="text-muted-foreground">Requester:</span>
+                <span className="text-foreground">
                   {submittedData.data.requesterName} ({submittedData.data.requesterEmail})
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Priority:</span>
-                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                <span className="text-muted-foreground">Priority:</span>
+                <span className="font-medium text-foreground">
                   {PRIORITY_COPY[submittedData.data.priority]}
                 </span>
               </div>
@@ -185,35 +184,19 @@ export default function IntakePage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors gap-1.5"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-          <Link
-            href="/catalog"
-            className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-          >
-            View Existing Scenarios →
-          </Link>
-        </div>
-
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Request an automation
           </h1>
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Tell us what you need in plain language — no technical detail required.
           </p>
         </div>
 
         {submitError && (
-          <div className="flex items-center gap-3 p-4 rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/50 text-red-700 dark:text-red-400 text-sm">
+          <div className="flex items-center gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
             <AlertCircle className="w-5 h-5 shrink-0" />
             <span>{submitError}</span>
           </div>
@@ -246,11 +229,11 @@ export default function IntakePage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
+          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                  Your Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Your Name <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -259,12 +242,12 @@ export default function IntakePage() {
                   placeholder="Your Name"
                   value={formData.requesterName}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-input bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-ring/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                  Your Email <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Your Email <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="email"
@@ -273,13 +256,13 @@ export default function IntakePage() {
                   placeholder="name@company.com"
                   value={formData.requesterEmail}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-input bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-ring/50"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 How urgent is this?
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -292,7 +275,7 @@ export default function IntakePage() {
                       ? "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                       : level === "medium"
                       ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                      : "border-zinc-500 bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300";
+                      : "border-zinc-500 bg-muted text-foreground";
 
                   return (
                     <button
@@ -301,8 +284,8 @@ export default function IntakePage() {
                       onClick={() => setFormData((prev) => ({ ...prev, priority: level }))}
                       className={`py-2 text-xs font-medium rounded-lg border text-center transition-all ${
                         isSelected
-                          ? `${activeColor} font-semibold ring-1 ring-offset-0`
-                          : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                          ? `${activeColor} font-semibold`
+                          : "border-border text-muted-foreground hover:bg-muted"
                       }`}
                     >
                       {PRIORITY_COPY[level]}
@@ -313,10 +296,10 @@ export default function IntakePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                What do you want automated? <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                What do you want automated? <span className="text-destructive">*</span>
               </label>
-              <p className="text-xs text-zinc-500 mb-2">
+              <p className="text-xs text-muted-foreground mb-2">
                 Describe the problem, the trigger, and where the result should go.
               </p>
               <textarea
@@ -329,7 +312,7 @@ export default function IntakePage() {
                 }
                 value={formData.businessGoal}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-input bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-ring/50"
               />
             </div>
           </div>

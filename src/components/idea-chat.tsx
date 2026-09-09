@@ -43,7 +43,7 @@ function FormattedMessage({ text }: { text: string }) {
         if (bullet) {
           return (
             <div key={i} className="flex gap-1.5 pl-1">
-              <span className="text-zinc-400 dark:text-zinc-500">•</span>
+              <span className="text-muted-foreground">•</span>
               <span>{renderInline(bullet[1])}</span>
             </div>
           );
@@ -138,7 +138,7 @@ export function IdeaChat({ onUseSummary }: { onUseSummary: (businessGoal: string
   };
 
   return (
-    <div className="rounded-xl border border-purple-200 dark:border-purple-900/60 bg-white dark:bg-zinc-900 overflow-hidden">
+    <div className="rounded-xl border border-purple-200 dark:border-purple-900/60 bg-card overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-purple-100 dark:border-purple-900/40 text-sm font-medium text-purple-700 dark:text-purple-300">
         <Sparkles className="w-4 h-4" />
         Talk it through with AI
@@ -146,7 +146,7 @@ export function IdeaChat({ onUseSummary }: { onUseSummary: (businessGoal: string
 
       <div className="max-h-80 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs text-muted-foreground">
             Tell me roughly what you want to automate — I&apos;ll ask a couple of quick questions to help you
             describe it clearly. When you&apos;re done, use the button below to carry it into your request.
           </p>
@@ -162,8 +162,8 @@ export function IdeaChat({ onUseSummary }: { onUseSummary: (businessGoal: string
             <div
               className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
                 m.role === "user"
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 whitespace-pre-wrap"
-                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+                  ? "bg-primary text-primary-foreground whitespace-pre-wrap"
+                  : "bg-muted text-foreground"
               }`}
             >
               {m.content ? (
@@ -175,7 +175,7 @@ export function IdeaChat({ onUseSummary }: { onUseSummary: (businessGoal: string
               )}
             </div>
             {m.role === "user" && (
-              <div className="w-6 h-6 shrink-0 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center">
+              <div className="w-6 h-6 shrink-0 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
                 <User className="w-3.5 h-3.5" />
               </div>
             )}
@@ -184,7 +184,7 @@ export function IdeaChat({ onUseSummary }: { onUseSummary: (businessGoal: string
       </div>
 
       {error && (
-        <div className="mx-4 mb-2 flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 p-2 rounded-lg border border-red-200 dark:border-red-900">
+        <div className="mx-4 mb-2 flex items-center gap-2 text-xs text-destructive bg-destructive/10 p-2 rounded-lg border border-destructive/30">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -194,7 +194,7 @@ export function IdeaChat({ onUseSummary }: { onUseSummary: (businessGoal: string
           <form> (or not), and a nested form's submit event bubbles into the
           parent's onSubmit, which previously caused the whole intake form to
           submit whenever someone hit Send in here. */}
-      <div className="flex items-center gap-2 px-4 py-3 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="flex items-center gap-2 px-4 py-3 border-t border-border">
         <input
           type="text"
           value={input}
@@ -207,7 +207,7 @@ export function IdeaChat({ onUseSummary }: { onUseSummary: (businessGoal: string
           }}
           placeholder="e.g. Something to alert us about failed payments"
           disabled={isSending}
-          className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60"
+          className="flex-1 px-3 py-2 rounded-lg border border-input bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60"
         />
         <Button type="button" size="sm" onClick={() => handleSend()} disabled={isSending || !input.trim()} className="gap-1.5 shrink-0">
           {isSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
@@ -222,7 +222,7 @@ export function IdeaChat({ onUseSummary }: { onUseSummary: (businessGoal: string
             variant="outline"
             onClick={handleUseSummary}
             disabled={isSummarizing || isSending}
-            className="gap-2 bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300"
+            className="gap-2 bg-linear-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300"
           >
             {isSummarizing ? (
               <>

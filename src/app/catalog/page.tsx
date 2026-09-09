@@ -48,8 +48,13 @@ export default async function Catalog({
   }
 
   return (
-    <div className="p-24 bg-zinc-50 dark:bg-zinc-950 min-h-screen">
-      <h1 className="text-4xl font-bold mb-8 text-zinc-900 dark:text-zinc-50">Automation Catalog</h1>
+    <div className="flex-1 max-w-5xl w-full mx-auto px-6 py-16">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Automation Catalog</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Live from Make.com — every automation currently built for the team.
+        </p>
+      </div>
 
       <form action="/catalog" className="mb-8 flex flex-wrap gap-3">
         <input
@@ -57,12 +62,12 @@ export default async function Catalog({
           name="q"
           defaultValue={q}
           placeholder="Search scenarios..."
-          className="flex-1 min-w-50 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700"
+          className="flex-1 min-w-50 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
         />
         <select
           name="status"
           defaultValue={status}
-          className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700"
+          className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
         >
           <option value="all">All statuses</option>
           <option value="active">Active</option>
@@ -72,14 +77,14 @@ export default async function Catalog({
         </select>
         <button
           type="submit"
-          className="rounded-lg bg-zinc-900 dark:bg-zinc-100 px-4 py-2 text-sm font-medium text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80 transition-colors"
         >
           Filter
         </button>
         {(q || status !== "all") && (
           <Link
             href="/catalog"
-            className="rounded-lg border border-zinc-200 dark:border-zinc-800 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Clear
           </Link>
@@ -87,15 +92,15 @@ export default async function Catalog({
       </form>
 
       {error && (
-        <p className="mb-8 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
+        <p className="mb-8 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           Couldn&apos;t load Make.com scenarios: {error}
         </p>
       )}
 
-      {!error && scenarios.length === 0 && <p className="text-zinc-500">No scenarios found for this team.</p>}
+      {!error && scenarios.length === 0 && <p className="text-muted-foreground">No scenarios found for this team.</p>}
 
       {!error && scenarios.length > 0 && filtered.length === 0 && (
-        <p className="text-zinc-500">No scenarios match your filters.</p>
+        <p className="text-muted-foreground">No scenarios match your filters.</p>
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -103,14 +108,14 @@ export default async function Catalog({
           <Link
             key={s.id}
             href={`/catalog/${s.id}`}
-            className="block p-6 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+            className="block p-6 bg-card rounded-xl shadow-sm border border-border hover:border-ring/50 transition-colors"
           >
-            <h2 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-zinc-100">{s.name}</h2>
-            <p className="text-zinc-600 dark:text-zinc-400 mb-1 text-sm">
+            <h2 className="text-xl font-semibold mb-2 text-foreground">{s.name}</h2>
+            <p className="text-muted-foreground mb-1 text-sm">
               Last edited {new Date(s.lastEdit).toLocaleDateString()}
             </p>
             {s.nextExec && (
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+              <p className="text-muted-foreground mb-4 text-sm">
                 Next run {new Date(s.nextExec).toLocaleString()}
               </p>
             )}
@@ -124,27 +129,27 @@ export default async function Catalog({
           {currentPage > 1 ? (
             <Link
               href={pageHref(currentPage - 1)}
-              className="rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700"
+              className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground hover:border-ring/50"
             >
               Previous
             </Link>
           ) : (
-            <span className="rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-sm text-zinc-300 dark:text-zinc-700">
+            <span className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground/50">
               Previous
             </span>
           )}
-          <span className="text-sm text-zinc-500">
+          <span className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </span>
           {currentPage < totalPages ? (
             <Link
               href={pageHref(currentPage + 1)}
-              className="rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700"
+              className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground hover:border-ring/50"
             >
               Next
             </Link>
           ) : (
-            <span className="rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-sm text-zinc-300 dark:text-zinc-700">
+            <span className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground/50">
               Next
             </span>
           )}

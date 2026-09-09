@@ -7,7 +7,7 @@ function LogStatus({ status }: { status: 1 | 2 | 3 }) {
   const color = status === 3 ? "bg-red-500" : status === 2 ? "bg-amber-500" : "bg-green-500";
   const label = status === 3 ? "Error" : status === 2 ? "Warning" : "Success";
   return (
-    <span className="inline-flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300">
+    <span className="inline-flex items-center gap-1.5 text-foreground">
       <span className={`h-2 w-2 rounded-full ${color}`} />
       {label}
     </span>
@@ -34,13 +34,13 @@ export default async function ScenarioDetail({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className="p-24 bg-zinc-50 dark:bg-zinc-950 min-h-screen">
-      <Link href="/catalog" className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">
+    <div className="flex-1 max-w-5xl w-full mx-auto px-6 py-16">
+      <Link href="/catalog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
         ← Back to catalog
       </Link>
 
       {error && (
-        <p className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
+        <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           Couldn&apos;t load this scenario: {error}
         </p>
       )}
@@ -48,38 +48,38 @@ export default async function ScenarioDetail({ params }: { params: Promise<{ id:
       {scenario && (
         <>
           <div className="flex items-start justify-between gap-4 mt-4 mb-2">
-            <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">{scenario.name}</h1>
+            <h1 className="text-4xl font-bold text-foreground">{scenario.name}</h1>
             <StatusBadge isActive={scenario.isActive} isPaused={scenario.isPaused} dlqCount={scenario.dlqCount} />
           </div>
-          <p className="text-zinc-500 mb-10 text-sm">
+          <p className="text-muted-foreground mb-10 text-sm">
             Last edited {new Date(scenario.lastEdit).toLocaleString()}
             {scenario.nextExec && <> · Next run {new Date(scenario.nextExec).toLocaleString()}</>}
           </p>
 
           <section className="mb-10">
-            <h2 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Steps</h2>
+            <h2 className="text-lg font-semibold mb-4 text-foreground">Steps</h2>
             {blueprint && blueprint.steps.length > 0 ? (
               <ScenarioFlow steps={blueprint.steps} />
             ) : (
-              <p className="text-zinc-500 text-sm">Structure details unavailable.</p>
+              <p className="text-muted-foreground text-sm">Structure details unavailable.</p>
             )}
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Recent runs</h2>
+            <h2 className="text-lg font-semibold mb-4 text-foreground">Recent runs</h2>
             {logs.length > 0 ? (
-              <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+              <div className="overflow-x-auto rounded-lg border border-border bg-card">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-800 text-left text-zinc-500">
+                    <tr className="border-b border-border text-left text-muted-foreground">
                       <th className="px-4 py-2 font-medium">When</th>
                       <th className="px-4 py-2 font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {logs.map((log) => (
-                      <tr key={log.imtId} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-                        <td className="px-4 py-2 text-zinc-700 dark:text-zinc-300">
+                      <tr key={log.imtId} className="border-b border-border/60 last:border-0">
+                        <td className="px-4 py-2 text-foreground">
                           {new Date(log.timestamp).toLocaleString()}
                         </td>
                         <td className="px-4 py-2">
@@ -91,7 +91,7 @@ export default async function ScenarioDetail({ params }: { params: Promise<{ id:
                 </table>
               </div>
             ) : (
-              <p className="text-zinc-500 text-sm">No recent runs.</p>
+              <p className="text-muted-foreground text-sm">No recent runs.</p>
             )}
           </section>
         </>
