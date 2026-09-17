@@ -19,6 +19,7 @@ export type Scenario = {
   lastEdit: string;
   nextExec: string | null;
   dlqCount: number;
+  folderId: number | null;
 };
 
 export type ScenarioStatus = "active" | "paused" | "error" | "inactive";
@@ -43,6 +44,28 @@ export async function getScenarios(): Promise<Scenario[]> {
   }
   const data = await res.json();
   return (data.scenarios ?? []) as Scenario[];
+}
+
+export type ScenarioFolder = {
+  id: number;
+  name: string;
+  parentId: number | null;
+  scenariosTotal: number;
+};
+
+export async function getScenarioFolders(): Promise<ScenarioFolder[]> {
+  const teamId = process.env.MAKE_TEAM_ID;
+  if (!teamId) throw new Error("MAKE_TEAM_ID is not set");
+
+  const res = await fetch(`${baseUrl()}/scenarios-folders?teamId=${teamId}`, {
+    headers: headers(),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Make API error: ${res.status} ${await res.text()}`);
+  }
+  const data = await res.json();
+  return (data.scenariosFolders ?? []) as ScenarioFolder[];
 }
 
 export async function getScenario(scenarioId: number): Promise<Scenario> {

@@ -12,6 +12,7 @@ Mapped against the automation-request flow (ideation → build → issue-to-PDD 
 | AI request-drafting assistant                       | ✅ Built                                  | [`POST /api/intake/ai-draft`](src/app/api/intake/ai-draft/route.ts)                          |
 | New-request Discord notification                    | ✅ Built                                  | [`lib/discord.ts`](src/lib/discord.ts) → alert channel                                       |
 | Automation catalog (make.com scenarios)             | ✅ Built, make.com only                   | [`/catalog`](src/app/catalog/page.tsx), [`/catalog/[id]`](src/app/catalog/%5Bid%5D/page.tsx) |
+| Catalog export (print-to-PDF)                       | ✅ Built                                  | [`/catalog/print`](src/app/catalog/print/page.tsx)                                          |
 | Error monitoring + Discord alert                    | ✅ Built                                  | [`GET /api/monitor/make`](src/app/api/monitor/make/route.ts) (cron-triggered)                |
 | Issue triage assistant (`/triage` slash command)    | ✅ Built                                  | [`POST /api/discord`](src/app/api/discord/route.ts)                                          |
 | Build copilot (chat)                                | ⚠️ Endpoint exists, not wired to any page | [`POST /api/chat`](src/app/api/chat/route.ts)                                                |

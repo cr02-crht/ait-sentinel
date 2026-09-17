@@ -8,7 +8,7 @@ const NAV_LINKS = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm print:hidden">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2 text-sm font-semibold text-foreground">
           <ShieldCheck className="h-4 w-4 text-primary" />
