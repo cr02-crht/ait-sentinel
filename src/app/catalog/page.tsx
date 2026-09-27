@@ -54,12 +54,20 @@ export default async function Catalog({
             Live from Make.com — every automation currently built for the team.
           </p>
         </div>
-        <Link
-          href={printHref}
-          className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground hover:border-ring/50 transition-colors"
-        >
-          Print / Save as PDF
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href={printHref}
+            className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground hover:border-ring/50 transition-colors"
+          >
+            Print / Save as PDF
+          </Link>
+          <Link
+            href="/catalog/notion"
+            className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground hover:border-ring/50 transition-colors"
+          >
+            Notion
+          </Link>
+        </div>
       </div>
 
       <form action="/catalog" className="mb-8 flex flex-wrap gap-3">

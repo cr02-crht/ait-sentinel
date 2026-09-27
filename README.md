@@ -13,6 +13,7 @@ Mapped against the automation-request flow (ideation → build → issue-to-PDD 
 | New-request Discord notification                    | ✅ Built                                  | [`lib/discord.ts`](src/lib/discord.ts) → alert channel                                       |
 | Automation catalog (make.com scenarios)             | ✅ Built, make.com only                   | [`/catalog`](src/app/catalog/page.tsx), [`/catalog/[id]`](src/app/catalog/%5Bid%5D/page.tsx) |
 | Catalog export (print-to-PDF)                       | ✅ Built                                  | [`/catalog/print`](src/app/catalog/print/page.tsx)                                          |
+| Catalog → Notion push/update/remove                 | ✅ Built                                  | [`/catalog/notion`](src/app/catalog/notion/page.tsx) → [`POST/DELETE /api/catalog/notion`](src/app/api/catalog/notion/route.ts) |
 | Error monitoring + Discord alert                    | ✅ Built                                  | [`GET /api/monitor/make`](src/app/api/monitor/make/route.ts) (cron-triggered)                |
 | Issue triage assistant (`/triage` slash command)    | ✅ Built                                  | [`POST /api/discord`](src/app/api/discord/route.ts)                                          |
 | Build copilot (chat)                                | ⚠️ Endpoint exists, not wired to any page | [`POST /api/chat`](src/app/api/chat/route.ts)                                                |
@@ -47,6 +48,9 @@ The catalog currently reads live from the Make.com API rather than from a stored
 | `MAKE_API_TOKEN`               | `lib/make.ts`                                           |                                                                                        |
 | `MAKE_TEAM_ID`                 | `lib/make.ts`                                           |                                                                                        |
 | `MONITOR_CRON_SECRET`          | `/api/monitor/make`                                     | Shared secret the external scheduler passes as `?secret=`.                             |
+| `NOTION_TOKEN`                 | `lib/notion.ts`                                         | Internal integration token from notion.so/my-integrations. Same token would back the registry in [NOTION-SCHEMA.md](NOTION-SCHEMA.md) if that's built with Notion. |
+| `NOTION_AUTOMATION_DOCS_PAGE_ID` | `lib/notion.ts`                                       | Page ID of the Notion page to push the catalog sub-page under (e.g. the "Automation Documentation" tracker item). |
+| `SITE_PASSCODE`                | `proxy.ts`, `/api/gate`                                 | Plain passcode for the site gate (server-only). Unset = no gate. Change it to reset: every existing session is signed out on its next request. `/api/discord` and `/api/monitor/make` bypass the gate. |
 
 ## Setup
 
@@ -61,6 +65,18 @@ npm run register:discord   # registers the /triage slash command (needs .env.loc
 ```
 GET https://<deployment>/api/monitor/make?secret=$MONITOR_CRON_SECRET
 ```
+
+### Pushing the catalog to Notion
+
+[`/catalog/notion`](src/app/catalog/notion/page.tsx) (linked from `/catalog`) shows a preview of the full, unfiltered catalog — exactly what would be pushed — with **Push to Notion** and **Remove from Notion** buttons ([`lib/notion.ts`](src/lib/notion.ts), via [`/api/catalog/notion`](src/app/api/catalog/notion/route.ts)). Push finds the existing "Automation Catalog" sub-page under `NOTION_AUTOMATION_DOCS_PAGE_ID` (if any), archives it, and creates a fresh one — so it stays a single up-to-date page rather than piling up dated duplicates. Remove archives it without recreating.
+
+One-time setup:
+
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) → **New integration**. Name it, pick the CRHT workspace, keep it internal. Under capabilities, enable **Read content**, **Insert content**, and **Update content** (update is needed to archive the previous page on each push/remove).
+2. Copy the **Internal Integration Token** and set it as `NOTION_TOKEN` in `.env.local`.
+3. Open the target Notion page (e.g. the "Automation Documentation" tracker item) → **•••** menu (top right) → **Connections** → add the integration you just created. Without this step the API call gets a 404, not a permissions error.
+4. Copy the page's ID from its URL — the 32-character id at the end (Notion accepts it with or without dashes) — and set it as `NOTION_AUTOMATION_DOCS_PAGE_ID` in `.env.local`.
+5. Restart `npm run dev` so the new env vars load, then use the buttons on `/catalog/notion`.
 
 ## Next build steps
 
