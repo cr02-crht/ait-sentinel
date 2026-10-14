@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>AIT Sentinel Progress</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+:root{
+  --bg:#F5F7F7; --surface:#FFFFFF; --ink:#16211F; --muted:#5B6B68; --line:#DCE3E2;
+  --accent:#0F6E6A; --accent-soft:#E2F0EF;
+  --ok:#237A45; --ok-bg:#E3F3E8; --warn:#9A6400; --warn-bg:#FBF0DA; --off:#6B7472; --off-bg:#ECEFEE;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1615; --surface:#162120; --ink:#E4ECEA; --muted:#93A5A1; --line:#27403D;
+    --accent:#5CC4BC; --accent-soft:#17312F;
+    --ok:#6BD192; --ok-bg:#16301F; --warn:#E8B45A; --warn-bg:#33270F; --off:#9AA6A3; --off-bg:#1E2927;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1615; --surface:#162120; --ink:#E4ECEA; --muted:#93A5A1; --line:#27403D;
+  --accent:#5CC4BC; --accent-soft:#17312F;
+  --ok:#6BD192; --ok-bg:#16301F; --warn:#E8B45A; --warn-bg:#33270F; --off:#9AA6A3; --off-bg:#1E2927;
+}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0}
+img{max-width:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "IBM Plex Sans",system-ui,sans-serif;padding-inline:16px;padding-block:40px 64px}
+.wrap{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:2.2rem;line-height:1.15}
+h2{font-size:1.35rem}
+h3{font-size:1rem;margin:0;font-weight:600}
+p{margin:0;max-width:68ch}
+.mono,code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em}
+code{background:var(--accent-soft);color:var(--accent);padding:1px 5px;border-radius:4px}
+.eyebrow{font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500}
+header{display:flex;flex-direction:column;gap:12px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;color:var(--muted);font-size:.9rem}
+section{display:flex;flex-direction:column;gap:16px}
+
+/* progress bar */
+.progress{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--off-bg)}
+.bar span{display:block;height:100%}
+.bar .b-ok{background:var(--ok)} .bar .b-warn{background:var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.9rem}
+.legend b{font-variant-numeric:tabular-nums;font-size:1.15rem;margin-right:4px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+
+/* latest update */
+.latest{border-left:3px solid var(--accent);padding-left:18px;display:flex;flex-direction:column;gap:14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
+.files{font-size:.82rem;color:var(--muted)}
+
+/* table */
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:520px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tr:last-child td{border-bottom:none}
+td.where{color:var(--muted)}
+.pill{display:inline-block;font-size:.76rem;font-weight:500;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.p-ok{background:var(--ok-bg);color:var(--ok)} .p-warn{background:var(--warn-bg);color:var(--warn)} .p-off{background:var(--off-bg);color:var(--off)}
+
+/* timeline */
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.timeline li{display:grid;grid-template-columns:96px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.timeline li:last-child{border-bottom:none}
+.timeline .date{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.88rem}
+.timeline .stat{color:var(--muted);font-size:.82rem}
+@media (max-width:480px){.timeline li{grid-template-columns:1fr;gap:2px}h1{font-size:1.8rem}}
+
+/* risks + next */
+.risks{display:flex;flex-direction:column;gap:10px}
+.risk{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+ol.next{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px}
+ol.next li::marker{color:var(--accent);font-weight:600}
+footer{color:var(--muted);font-size:.84rem;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Internal · Automation request tooling</div>
+    <h1>AIT Sentinel progress</h1>
+    <p>Intake, catalog and monitoring for internal automation requests: the tool PDD uses to take "someone wants an automation built" from idea to a running Make.com scenario.</p>
+    <div class="meta">
+      <span>As of 28 Sep 2026</span>
+      <span>Latest commit <span class="mono">e86a7d9</span> · 27 Sep</span>
+      <span>Branch <span class="mono">main</span>, clean</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Where the pipeline stands</h2>
+    <div class="progress">
+      <div class="bar" role="img" aria-label="8 of 15 stages built, 1 partial, 6 not built">
+        <span class="b-ok" style="width:53.3%"></span><span class="b-warn" style="width:6.7%"></span>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--ok)"></span><b>8</b>built</span>
+        <span><span class="dot" style="background:var(--warn)"></span><b>1</b>partial</span>
+        <span><span class="dot" style="background:var(--off)"></span><b>6</b>not built</span>
+        <span style="color:var(--muted)">of 15 stages</span>
+      </div>
+    </div>
+    <p>Everything a requester touches is live: the intake form, the AI drafting help, the Discord alert, and a browsable catalog that now exports to PDF and Notion. What's missing is the back half, and almost all of it waits on one decision: where the automation registry lives.</p>
+  </section>
+
+  <section class="latest">
+    <div class="eyebrow">Latest update · 27 Sep · e86a7d9 · +504 / −6 across 11 files</div>
+    <h2>Notion catalog sync and a site passcode gate</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>Catalog → Notion</h3>
+        <ul>
+          <li>New <code>/catalog/notion</code> page previews the full, unfiltered catalog before pushing.</li>
+          <li><b>Push to Notion</b> archives the old "Automation Catalog" sub-page and creates a fresh one, so there's always a single current copy.</li>
+          <li><b>Remove from Notion</b> archives it without recreating.</li>
+          <li>Scenarios are grouped by Make.com folder into tables (name, status, last edited, next run), sent in batches under Notion's 100-block limit.</li>
+        </ul>
+        <div class="files mono">lib/notion.ts · api/catalog/notion · catalog/notion</div>
+      </div>
+      <div class="card">
+        <h3>Site gate</h3>
+        <ul>
+          <li>The whole site sits behind a shared passcode set in <code>SITE_PASSCODE</code>. Leaving it unset turns the gate off.</li>
+          <li>The cookie stores a SHA-256 hash, never the passcode, and lasts 30 days.</li>
+          <li>Changing the passcode signs everyone out on their next request.</li>
+          <li>Discord interactions and the monitor cron keep working because they skip the gate and use their own auth.</li>
+        </ul>
+        <div class="files mono">proxy.ts · lib/site-gate.ts · /gate · api/gate</div>
+      </div>
+    </div>
+    <p style="color:var(--muted);font-size:.9rem">Setup needed before Notion push works: an internal integration with read, insert and update access, connected to the target page, plus <code>NOTION_TOKEN</code> and <code>NOTION_AUTOMATION_DOCS_PAGE_ID</code> in <code>.env.local</code>. Step-by-step instructions are in the README.</p>
+  </section>
+
+  <section>
+    <h2>Stage by stage</h2>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Stage</th><th>Status</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td>Intake form</td><td><span class="pill p-ok">Built</span></td><td class="where mono">/intake → POST /api/intake</td></tr>
+          <tr><td>AI request-drafting assistant</td><td><span class="pill p-ok">Built</span></td><td class="where mono">/api/intake/ai-draft</td></tr>
+          <tr><td>New-request Discord notification</td><td><span class="pill p-ok">Built</span></td><td class="where mono">lib/discord.ts</td></tr>
+          <tr><td>Automation catalog (Make.com only)</td><td><span class="pill p-ok">Built</span></td><td class="where mono">/catalog, /catalog/[id]</td></tr>
+          <tr><td>Catalog export to PDF</td><td><span class="pill p-ok">Built</span></td><td class="where mono">/catalog/print</td></tr>
+          <tr><td>Catalog → Notion push / remove</td><td><span class="pill p-ok">Built · new</span></td><td class="where mono">/catalog/notion</td></tr>
+          <tr><td>Error monitoring + Discord alert</td><td><span class="pill p-ok">Built</span></td><td class="where mono">GET /api/monitor/make</td></tr>
+          <tr><td>Issue triage (<code>/triage</code> slash command)</td><td><span class="pill p-ok">Built</span></td><td class="where mono">POST /api/discord</td></tr>
+          <tr><td>Build copilot chat</td><td><span class="pill p-warn">Endpoint only</span></td><td class="where mono">POST /api/chat, no page uses it</td></tr>
+          <tr><td>Persistent registry (all platforms)</td><td><span class="pill p-off">Not built</span></td><td class="where">Spec in NOTION-SCHEMA.md</td></tr>
+          <tr><td>Request → platform routing / effort triage</td><td><span class="pill p-off">Not built</span></td><td class="where">Needs registry</td></tr>
+          <tr><td>Dedup check against existing automations</td><td><span class="pill p-off">Not built</span></td><td class="where">Needs registry</td></tr>
+          <tr><td>Validate gate (checklist, secret scan, docs)</td><td><span class="pill p-off">Not built</span></td><td class="where">Needs registry</td></tr>
+          <tr><td>Deploy metadata stamping</td><td><span class="pill p-off">Not built</span></td><td class="where">Needs registry</td></tr>
+          <tr><td>Auto-discovery / orphan detector</td><td><span class="pill p-off">Not built</span></td><td class="where">Needs registry</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Things to know</h2>
+    <div class="risks">
+      <div class="risk"><span class="pill p-warn">Check</span><p>The error monitor has nothing to watch yet. <code>lib/watched-scenarios.ts</code> is an empty list, so the cron endpoint runs but never alerts. Add scenario IDs there until the registry replaces it.</p></div>
+      <div class="risk"><span class="pill p-warn">Decide</span><p>Registry datastore is still open: Notion (the original plan, easy for non-engineers to browse) or Supabase (already a dependency but unused, better for dedup and reconciliation queries). Pick one; the docs advise against building both.</p></div>
+      <div class="risk"><span class="pill p-off">Note</span><p>Nothing persists yet. Intake submissions go to Discord only, and the catalog reads live from the Make.com API on every page load with no cache.</p></div>
+      <div class="risk"><span class="pill p-off">Note</span><p>AI features run on Google Gemini (<code>gemini-3.1-flash-lite-preview</code>), not Claude. This is a deliberate departure from the original plan.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Next steps</h2>
+    <p style="color:var(--muted)">In order. Each one unblocks the next.</p>
+    <ol class="next">
+      <li><b>Choose the registry datastore</b> and set it up per NOTION-SCHEMA.md.</li>
+      <li><b>Write intake submissions into the registry</b> as well as notifying Discord.</li>
+      <li><b>Add effort and platform triage</b> (Make.com vs. hosted) that writes back to the row, with a person still approving the move to Building.</li>
+      <li><b>Put the build copilot on a page</b> so <code>/api/chat</code> is reachable.</li>
+      <li><b>Add the validate gate and the orphan detector</b> once the registry is the source of truth.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Commit history</h2>
+    <ol class="timeline">
+      <li><span class="date">27 Sep 2026</span><div><h3>Notion catalog sync and site gate</h3><div class="stat mono">e86a7d9 · 11 files · +504 −6</div></div></li>
+      <li><span class="date">17 Sep 2026</span><div><h3>Catalog print export and grouping by Make.com folder</h3><div class="stat mono">18e9c51 · 8 files · +267 −29</div></div></li>
+      <li><span class="date">9 Sep 2026</span><div><h3>UI consistency and accessibility pass, shared site header</h3><div class="stat mono">e222d36 · 11 files · +191 −114</div></div></li>
+      <li><span class="date">9 Sep 2026</span><div><h3>Intake form, AI chat, catalog, Make.com and Discord integrations</h3><div class="stat mono">0035b37 · 28 files · +5,423 −284</div></div></li>
+      <li><span class="date">24 Aug 2026</span><div><h3>Project created from Create Next App</h3><div class="stat mono">0c01a8d · Next.js 16.3</div></div></li>
+    </ol>
+  </section>
+
+  <footer>Compiled from the git history, README, MAKECOM-WIRING.md and NOTION-SCHEMA.md in the ait-sentinel repo. Internal use.</footer>
+</div>
+</body>
+</html>

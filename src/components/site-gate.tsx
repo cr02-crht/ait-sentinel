@@ -5,12 +5,16 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function SiteGate({ next }: { next: string }) {
-  const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [checking, setChecking] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
+    // Read from the DOM, not state: browser autofill fills the field without
+    // firing onChange, so state would still be empty.
+    const value = String(new FormData(form).get("passcode") ?? "");
+    if (!value) return;
 
     setChecking(true);
     const response = await fetch("/api/gate", {
@@ -25,7 +29,7 @@ export function SiteGate({ next }: { next: string }) {
       window.location.assign(next);
     } else {
       setError(true);
-      setValue("");
+      form.reset();
     }
   }
 
@@ -38,12 +42,10 @@ export function SiteGate({ next }: { next: string }) {
         </div>
         <input
           type="password"
+          name="passcode"
           autoFocus
-          value={value}
-          onChange={(event) => {
-            setValue(event.target.value);
-            setError(false);
-          }}
+          autoComplete="current-password"
+          onChange={() => setError(false)}
           placeholder="Passcode"
           className={cn(
             "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -52,7 +54,7 @@ export function SiteGate({ next }: { next: string }) {
           )}
         />
         {error && <p className="text-sm text-destructive">Incorrect passcode.</p>}
-        <Button type="submit" className="w-full" disabled={checking || value.length === 0}>
+        <Button type="submit" className="w-full" disabled={checking}>
           {checking ? "Checking…" : "Enter"}
         </Button>
       </form>
