@@ -29,7 +29,9 @@ Given a raw or casual description of an automation request, analyze it and outpu
   "workflowSteps": "Numbered step-by-step logic and rules.",
   "dataFields": "Key fields to process or extract (comma-separated).",
   "alertDestination": "Suggested error alert channel or email."
-}`;
+}
+
+Only fill a field when the description states it or makes it unambiguous. If the requester did not name an app, a trigger, or a frequency, omit that field entirely rather than guessing — an empty field is more useful to the reviewer than a plausible invention. Never add automation platforms (e.g. Make.com, Zapier, n8n) to targetApps unless the requester named them. "title" is always required.`;
 
 export async function draftAutomationSpec(
   prompt: string,

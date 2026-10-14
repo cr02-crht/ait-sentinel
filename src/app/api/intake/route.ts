@@ -78,15 +78,33 @@ export async function POST(req: NextRequest) {
                 ? "🟡"
                 : "🟢";
 
+        // Same wording the requester saw on the form.
+        const priorityLabel = {
+          low: "Low",
+          medium: "Normal",
+          high: "High",
+          critical: "Urgent",
+        }[payload.priority];
+
+        // Only what the requester actually typed goes in the top block. The
+        // AI read is a triage aid and is labelled as such, so nobody mistakes
+        // a guessed trigger or app list for something the requester asked for.
+        const aiLines = [
+          payload.triggerType &&
+            `Trigger: ${payload.triggerType}${payload.triggerDetails ? ` (${payload.triggerDetails})` : ""}`,
+          payload.targetApps?.length && `Apps: ${payload.targetApps.join(", ")}`,
+          payload.frequency && `Frequency: ${payload.frequency}`,
+        ].filter(Boolean);
+
         const discordMessage = [
-          `📥 **New Automation Request Submitted [${requestId}]**`,
-          `**Title:** ${payload.title}`,
-          `**Priority:** ${priorityEmoji} ${payload.priority.toUpperCase()}`,
-          `**Requester:** ${payload.requesterName} (${payload.requesterEmail}) - *${payload.department || "General"}*`,
-          `**Trigger:** ${payload.triggerType || "Not specified"}${payload.triggerDetails ? ` (${payload.triggerDetails})` : ""}`,
-          `**Targets:** ${payload.targetApps?.length ? payload.targetApps.join(", ") : "Not specified"}`,
-          `**Frequency:** ${payload.frequency || "Not specified"}`,
-          `**Goal:** ${payload.businessGoal.slice(0, 300)}${payload.businessGoal.length > 300 ? "..." : ""}`,
+          `📥 **New Automation Request [${requestId}]** — ${payload.title}`,
+          `**From:** ${payload.requesterName} (${payload.requesterEmail})`,
+          `**Urgency:** ${priorityEmoji} ${priorityLabel}`,
+          `**What they want automated:**`,
+          `> ${payload.businessGoal.slice(0, 1200).replace(/\n/g, "\n> ")}${payload.businessGoal.length > 1200 ? "…" : ""}`,
+          ...(aiLines.length
+            ? ["", `-# 🤖 AI first read (not provided by requester; confirm before building)`, ...aiLines.map((l) => `-# ${l}`)]
+            : []),
         ].join("\n");
 
         await sendChannelMessage(channelId, discordMessage);
