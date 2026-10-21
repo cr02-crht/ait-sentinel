@@ -4,7 +4,7 @@ Status check against the codebase: only the monitor piece is actually live today
 
 ## What's real today
 
-**Error monitoring** — [`GET /api/monitor/make`](src/app/api/monitor/make/route.ts), hit by an external scheduler (Cloud Scheduler, cron-job.org — whatever's already pinging it) on an interval, authenticated by `?secret=MONITOR_CRON_SECRET`. For each entry in [`lib/watched-scenarios.ts`](src/lib/watched-scenarios.ts) it pulls the last 15 minutes of logs via the Make API and posts a Discord alert to `DISCORD_ALERT_CHANNEL_ID` if any run failed. No AI involved — it's a count of `status === 3` (error) log entries.
+**Error monitoring** — [`GET /api/monitor/make`](src/app/api/monitor/make/route.ts), hit by an external scheduler (Cloud Scheduler, cron-job.org — whatever's already pinging it) on an interval, authenticated by `?secret=MONITOR_CRON_SECRET`. For every active scenario (minus any tagged `[no-monitor]` in their description) it pulls the logs since the previous check and posts a Discord alert to `DISCORD_ALERT_CHANNEL_ID` for failed runs, retry backoff, and overdue schedules. [`/api/monitor/make/digest`](src/app/api/monitor/make/digest/route.ts) posts a daily summary. No AI involved; logic lives in [`lib/monitor.ts`](src/lib/monitor.ts).
 
 **Catalog read** — [`/catalog`](src/app/catalog/page.tsx) calls `getScenarios()` ([`lib/make.ts`](src/lib/make.ts)) live against `GET /scenarios?teamId=...` on every page load. No caching, no registry — it's a direct mirror of whatever's in the Make team.
 
@@ -39,9 +39,9 @@ No AI needed here — it's metadata plumbing. Skip building an AI step for this 
 
 ## To build: Scenario 3 — Per-automation monitor (extends what exists)
 
-The current `/api/monitor/make` alerts to one shared channel for a hardcoded scenario list. To generalize once the registry exists:
+The current `/api/monitor/make` alerts to one shared channel for every active scenario. To generalize once the registry exists:
 
-1. Replace `watched-scenarios.ts` with a query against the registry for `Platform = make.com AND Status = Live`.
+1. Replace the `[no-monitor]` description tag with a query against the registry for `Platform = make.com AND Status = Live`.
 2. On failure, look up `Error Alert Channel` and `Owner` from that row instead of the single env var, so alerts route per-automation instead of all to one channel.
 3. Optionally add the AI severity/cause classification that already exists in the `/triage` Discord command ([`api/discord/route.ts`](src/app/api/discord/route.ts)) — call it automatically on the failure event instead of waiting for a human to type `/triage`.
 

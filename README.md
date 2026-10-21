@@ -13,7 +13,8 @@ Mapped against the automation-request flow (ideation → build → issue-to-PDD 
 | New-request Discord notification                    | ✅ Built                                  | [`lib/discord.ts`](src/lib/discord.ts) → alert channel                                       |
 | Automation catalog (make.com scenarios)             | ✅ Built, make.com only                   | [`/catalog`](src/app/catalog/page.tsx), [`/catalog/[id]`](src/app/catalog/%5Bid%5D/page.tsx) |
 | Catalog export (print-to-PDF)                       | ✅ Built                                  | [`/catalog/print`](src/app/catalog/print/page.tsx)                                          |
-| Error monitoring + Discord alert                    | ✅ Built                                  | [`GET /api/monitor/make`](src/app/api/monitor/make/route.ts) (cron-triggered)                |
+| Error monitoring + Discord alert                    | ✅ Built, all active scenarios            | [`GET /api/monitor/make`](src/app/api/monitor/make/route.ts) (cron-triggered)                |
+| Daily health digest                                 | ✅ Built                                  | [`GET /api/monitor/make/digest`](src/app/api/monitor/make/digest/route.ts) (cron, once a day) |
 | Issue triage assistant (`/triage` slash command)    | ✅ Built                                  | [`POST /api/discord`](src/app/api/discord/route.ts)                                          |
 | Build copilot (chat)                                | ⚠️ Endpoint exists, not wired to any page | [`POST /api/chat`](src/app/api/chat/route.ts)                                                |
 | Persistent registry (all automations, any platform) | ❌ Not built                              | see [NOTION-SCHEMA.md](NOTION-SCHEMA.md)                                                     |
@@ -23,7 +24,7 @@ Mapped against the automation-request flow (ideation → build → issue-to-PDD 
 | Deploy metadata stamping                            | ❌ Not built                              | —                                                                                            |
 | Auto-discovery / orphan detector                    | ❌ Not built                              | —                                                                                            |
 
-The catalog currently reads live from the Make.com API rather than from a stored registry, and [`lib/watched-scenarios.ts`](src/lib/watched-scenarios.ts) is an explicit stand-in ("until that's backed by a real database") for monitoring which scenarios matter. Building the registry described in [NOTION-SCHEMA.md](NOTION-SCHEMA.md) unblocks everything still marked ❌.
+The catalog and the monitor both read live from the Make.com API rather than from a stored registry. The monitor covers every active scenario; add `[no-monitor]` to a scenario's description in Make to leave it out. Building the registry described in [NOTION-SCHEMA.md](NOTION-SCHEMA.md) unblocks everything still marked ❌.
 
 ## Architecture
 
@@ -46,7 +47,8 @@ The catalog currently reads live from the Make.com API rather than from a stored
 | `MAKE_ZONE`                    | `lib/make.ts`                                           | e.g. `eu1`, `us1` — the subdomain you log into Make with.                              |
 | `MAKE_API_TOKEN`               | `lib/make.ts`                                           |                                                                                        |
 | `MAKE_TEAM_ID`                 | `lib/make.ts`                                           |                                                                                        |
-| `MONITOR_CRON_SECRET`          | `/api/monitor/make`                                     | Shared secret the external scheduler passes as `?secret=`.                             |
+| `MONITOR_CRON_SECRET`          | `/api/monitor/make`, `/api/monitor/make/digest`         | Shared secret the external scheduler passes as `?secret=`.                             |
+| `MONITOR_INTERVAL_MINUTES`     | `/api/monitor/make`                                     | Optional, default `15`. Must match how often the scheduler calls the endpoint: each check looks back exactly this far, so a mismatch double-alerts or misses failures. |
 | `SITE_PASSCODE`                | `proxy.ts`, `/api/gate`                                 | Plain passcode for the site gate (server-only). Unset = no gate. Change it to reset: every existing session is signed out on its next request. `/api/discord` and `/api/monitor/make` bypass the gate. |
 
 ## Setup
@@ -57,11 +59,17 @@ npm run dev          # http://localhost:3000
 npm run register:discord   # registers the /triage slash command (needs .env.local)
 ```
 
-`/api/monitor/make` is meant to be hit by an external scheduler (Cloud Scheduler, cron-job.org, etc.) on an interval, e.g.:
+Two monitor endpoints are meant to be hit by an external scheduler (Cloud Scheduler, cron-job.org, etc.):
 
 ```
-GET https://<deployment>/api/monitor/make?secret=$MONITOR_CRON_SECRET
+GET https://<deployment>/api/monitor/make?secret=$MONITOR_CRON_SECRET          # every MONITOR_INTERVAL_MINUTES
+GET https://<deployment>/api/monitor/make/digest?secret=$MONITOR_CRON_SECRET   # once a day, e.g. 09:00 local
 ```
+
+- **`/api/monitor/make`** alerts on failed runs (with Make's error message and a link to the run), on Make backing off retries, and once when a scheduled scenario is more than 30 minutes overdue. If the Make API itself is down it returns 502 without posting, so an outage doesn't flood the channel.
+- **`/api/monitor/make/digest`** posts a 24-hour summary covering failures, overdue scenarios, queued incomplete executions, paused scenarios, and scenarios switched off in the last day (by a person or by Make). It also posts when it can't run, which makes it the canary for the monitor itself. It paces its Make API calls to stay under the rate limit, so it takes a minute or two.
+
+Add `&dryRun=1` to either endpoint to get the message back as JSON instead of posting it.
 
 ## Next build steps
 

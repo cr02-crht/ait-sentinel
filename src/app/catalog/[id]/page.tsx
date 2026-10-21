@@ -1,11 +1,20 @@
 import Link from "next/link";
-import { getScenario, getScenarioBlueprint, getScenarioLogHistory } from "@/lib/make";
+import { getScenario, getScenarioBlueprint, getScenarioLogHistory, type ScenarioLog } from "@/lib/make";
 import { StatusBadge } from "@/components/status-badge";
 import { ScenarioFlow } from "@/components/scenario-flow";
 
-function LogStatus({ status }: { status: 1 | 2 | 3 }) {
-  const color = status === 3 ? "bg-red-500" : status === 2 ? "bg-amber-500" : "bg-green-500";
-  const label = status === 3 ? "Error" : status === 2 ? "Warning" : "Success";
+function LogStatus({ log }: { log: ScenarioLog }) {
+  // Lifecycle events ("stop", "backoff") are mixed in with runs and have no status.
+  const { color, label } =
+    log.type === "stop"
+      ? { color: "bg-muted-foreground", label: log.authorName ? `Switched off by ${log.authorName}` : "Switched off" }
+      : log.type === "backoff"
+        ? { color: "bg-amber-500", label: "Retry backoff" }
+        : log.status === 3
+          ? { color: "bg-red-500", label: "Error" }
+          : log.status === 2
+            ? { color: "bg-amber-500", label: "Warning" }
+            : { color: "bg-green-500", label: "Success" };
   return (
     <span className="inline-flex items-center gap-1.5 text-foreground">
       <span className={`h-2 w-2 rounded-full ${color}`} />
@@ -83,7 +92,7 @@ export default async function ScenarioDetail({ params }: { params: Promise<{ id:
                           {new Date(log.timestamp).toLocaleString()}
                         </td>
                         <td className="px-4 py-2">
-                          <LogStatus status={log.status} />
+                          <LogStatus log={log} />
                         </td>
                       </tr>
                     ))}
