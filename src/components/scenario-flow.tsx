@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import type { BlueprintStep } from "@/lib/make";
+import { isAiModule } from "@/lib/dependencies";
 
 const COLORS = [
   "bg-blue-500",
@@ -58,6 +59,11 @@ export function ScenarioFlow({ steps }: { steps: BlueprintStep[] }) {
                   {humanizeApp(app)}
                 </span>
                 <span className="text-xs text-muted-foreground leading-tight">{operation}</span>
+                {isAiModule(step.module) && (
+                  <span className="mt-1 rounded bg-violet-50 dark:bg-violet-950/50 px-1.5 text-[10px] font-medium uppercase tracking-wide text-violet-700 dark:text-violet-300">
+                    AI
+                  </span>
+                )}
               </div>
               {i < steps.length - 1 && (
                 <ChevronRight className="h-4 w-4 text-border shrink-0 mt-6" />

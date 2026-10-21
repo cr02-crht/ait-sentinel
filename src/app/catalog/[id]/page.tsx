@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getScenario, getScenarioBlueprint, getScenarioLogHistory, type ScenarioLog } from "@/lib/make";
 import { StatusBadge } from "@/components/status-badge";
 import { ScenarioFlow } from "@/components/scenario-flow";
+import { AiBadge, DependencyList } from "@/components/dependency-list";
 
 function LogStatus({ log }: { log: ScenarioLog }) {
   // Lifecycle events ("stop", "backoff") are mixed in with runs and have no status.
@@ -58,7 +59,10 @@ export default async function ScenarioDetail({ params }: { params: Promise<{ id:
         <>
           <div className="flex items-start justify-between gap-4 mt-4 mb-2">
             <h1 className="text-4xl font-bold text-foreground">{scenario.name}</h1>
-            <StatusBadge isActive={scenario.isActive} isPaused={scenario.isPaused} dlqCount={scenario.dlqCount} />
+            <div className="flex shrink-0 items-center gap-2">
+              {blueprint?.dependencies.some((d) => d.kind === "ai") && <AiBadge />}
+              <StatusBadge isActive={scenario.isActive} isPaused={scenario.isPaused} dlqCount={scenario.dlqCount} />
+            </div>
           </div>
           <p className="text-muted-foreground mb-10 text-sm">
             Last edited {new Date(scenario.lastEdit).toLocaleString()}
@@ -69,6 +73,18 @@ export default async function ScenarioDetail({ params }: { params: Promise<{ id:
             <h2 className="text-lg font-semibold mb-4 text-foreground">Steps</h2>
             {blueprint && blueprint.steps.length > 0 ? (
               <ScenarioFlow steps={blueprint.steps} />
+            ) : (
+              <p className="text-muted-foreground text-sm">Structure details unavailable.</p>
+            )}
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-lg font-semibold mb-1 text-foreground">Services &amp; APIs</h2>
+            <p className="text-muted-foreground mb-4 text-sm">
+              Everything this scenario reaches outside Make, including steps on router branches and error handlers.
+            </p>
+            {blueprint ? (
+              <DependencyList dependencies={blueprint.dependencies} />
             ) : (
               <p className="text-muted-foreground text-sm">Structure details unavailable.</p>
             )}

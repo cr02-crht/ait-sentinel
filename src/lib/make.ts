@@ -1,3 +1,5 @@
+import { scenarioDependencies, type BlueprintModule, type Dependency } from "./dependencies";
+
 const MAKE_ZONE = process.env.MAKE_ZONE;
 const MAKE_API_TOKEN = process.env.MAKE_API_TOKEN;
 
@@ -130,8 +132,10 @@ export type BlueprintStep = {
   module: string;
 };
 
-export async function getScenarioBlueprint(scenarioId: number): Promise<{ name?: string; steps: BlueprintStep[] }> {
-  const data = await makeGet<{ response?: { blueprint?: { name?: string; flow?: Array<{ id: number; module?: string }> } } }>(
+export async function getScenarioBlueprint(
+  scenarioId: number,
+): Promise<{ name?: string; steps: BlueprintStep[]; dependencies: Dependency[] }> {
+  const data = await makeGet<{ response?: { blueprint?: { name?: string; flow?: BlueprintModule[] } } }>(
     `/scenarios/${scenarioId}/blueprint?draft=false`,
     ` for scenario ${scenarioId}`,
   );
@@ -142,5 +146,6 @@ export async function getScenarioBlueprint(scenarioId: number): Promise<{ name?:
       id: step.id,
       module: step.module ?? "unknown",
     })),
+    dependencies: scenarioDependencies(flow),
   };
 }

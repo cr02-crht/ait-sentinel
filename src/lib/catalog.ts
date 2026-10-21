@@ -1,4 +1,5 @@
 import { scenarioStatus, type Scenario, type ScenarioFolder, type ScenarioStatus } from "./make";
+import type { ScenarioUsage, UsageIndex } from "./dependency-index";
 
 export type StatusFilter = "all" | ScenarioStatus;
 
@@ -6,6 +7,30 @@ const STATUS_FILTERS: StatusFilter[] = ["all", "active", "paused", "error", "ina
 
 export function parseStatusFilter(value: string | undefined): StatusFilter {
   return value && (STATUS_FILTERS as string[]).includes(value) ? (value as StatusFilter) : "all";
+}
+
+// "any" = AI or a custom API call; "none" = only connected apps and Make's own tools.
+export type UsageFilter = "all" | "ai" | "api" | "any" | "none";
+
+const USAGE_FILTERS: UsageFilter[] = ["all", "ai", "api", "any", "none"];
+
+export function parseUsageFilter(value: string | undefined): UsageFilter {
+  return value && (USAGE_FILTERS as string[]).includes(value) ? (value as UsageFilter) : "all";
+}
+
+function matchesUsage(usage: ScenarioUsage, filter: UsageFilter): boolean {
+  switch (filter) {
+    case "ai":
+      return usage.ai;
+    case "api":
+      return usage.api;
+    case "any":
+      return usage.ai || usage.api;
+    case "none":
+      return !usage.ai && !usage.api;
+    default:
+      return true;
+  }
 }
 
 export function parseFolderFilter(value: string | undefined): number | null {
@@ -18,21 +43,33 @@ export function filterScenarios(
   scenarios: Scenario[],
   q: string,
   status: StatusFilter,
-  folderId: number | null
+  folderId: number | null,
+  usage: UsageFilter = "all",
+  usageIndex?: UsageIndex
 ): Scenario[] {
   return scenarios.filter((s) => {
     const matchesQuery = q ? s.name.toLowerCase().includes(q.toLowerCase()) : true;
     const matchesStatus = status === "all" ? true : scenarioStatus(s) === status;
     const matchesFolder = folderId == null ? true : s.folderId === folderId;
-    return matchesQuery && matchesStatus && matchesFolder;
+    // Scenarios not scanned yet can't be placed, so a usage filter leaves them out.
+    const scanned = usageIndex?.get(s.id);
+    const matchesUsageFilter =
+      usage === "all" ? true : scanned != null && scanned !== "pending" && matchesUsage(scanned, usage);
+    return matchesQuery && matchesStatus && matchesFolder && matchesUsageFilter;
   });
 }
 
-export function catalogQueryString(q: string, status: StatusFilter, folderId: number | null): string {
+export function catalogQueryString(
+  q: string,
+  status: StatusFilter,
+  folderId: number | null,
+  usage: UsageFilter = "all"
+): string {
   const sp = new URLSearchParams();
   if (q) sp.set("q", q);
   if (status !== "all") sp.set("status", status);
   if (folderId != null) sp.set("folder", String(folderId));
+  if (usage !== "all") sp.set("uses", usage);
   return sp.toString();
 }
 

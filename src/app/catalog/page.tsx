@@ -1,7 +1,17 @@
 import Link from "next/link";
 import { getScenarioFolders, getScenarios, type Scenario, type ScenarioFolder } from "@/lib/make";
-import { catalogQueryString, filterScenarios, parseFolderFilter, parseStatusFilter, type StatusFilter } from "@/lib/catalog";
+import {
+  catalogQueryString,
+  filterScenarios,
+  parseFolderFilter,
+  parseStatusFilter,
+  parseUsageFilter,
+  type StatusFilter,
+  type UsageFilter,
+} from "@/lib/catalog";
+import { getUsageIndex, type UsageIndex } from "@/lib/dependency-index";
 import { StatusBadge } from "@/components/status-badge";
+import { UsageChips } from "@/components/dependency-list";
 
 const PAGE_SIZE = 12;
 
@@ -14,14 +24,17 @@ export default async function Catalog({
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const status: StatusFilter = parseStatusFilter(typeof params.status === "string" ? params.status : undefined);
   const folderId = parseFolderFilter(typeof params.folder === "string" ? params.folder : undefined);
+  const usage: UsageFilter = parseUsageFilter(typeof params.uses === "string" ? params.uses : undefined);
   const requestedPage = Number(params.page);
 
   let scenarios: Scenario[] = [];
   let folders: ScenarioFolder[] = [];
+  let usageIndex: UsageIndex = new Map();
   let error: string | null = null;
 
   try {
     [scenarios, folders] = await Promise.all([getScenarios(), getScenarioFolders()]);
+    usageIndex = await getUsageIndex(scenarios);
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load scenarios from Make.";
   }
@@ -29,13 +42,14 @@ export default async function Catalog({
   const folderById = new Map(folders.map((f) => [f.id, f]));
   const sortedFolders = [...folders].sort((a, b) => a.name.localeCompare(b.name));
 
-  const filtered = filterScenarios(scenarios, q, status, folderId);
+  const filtered = filterScenarios(scenarios, q, status, folderId, usage, usageIndex);
+  const pendingCount = [...usageIndex.values()].filter((u) => u === "pending").length;
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(Math.max(1, Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1), totalPages);
   const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  const filterQuery = catalogQueryString(q, status, folderId);
+  const filterQuery = catalogQueryString(q, status, folderId, usage);
   const printHref = filterQuery ? `/catalog/print?${filterQuery}` : "/catalog/print";
 
   function pageHref(page: number) {
@@ -93,13 +107,24 @@ export default async function Catalog({
             </option>
           ))}
         </select>
+        <select
+          name="uses"
+          defaultValue={usage}
+          className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
+        >
+          <option value="all">Any services</option>
+          <option value="ai">Uses AI / LLM</option>
+          <option value="api">Custom API calls</option>
+          <option value="any">AI or API</option>
+          <option value="none">Neither</option>
+        </select>
         <button
           type="submit"
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80 transition-colors"
         >
           Filter
         </button>
-        {(q || status !== "all" || folderId != null) && (
+        {(q || status !== "all" || folderId != null || usage !== "all") && (
           <Link
             href="/catalog"
             className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -112,6 +137,13 @@ export default async function Catalog({
       {error && (
         <p className="mb-8 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           Couldn&apos;t load Make.com scenarios: {error}
+        </p>
+      )}
+
+      {!error && pendingCount > 0 && (
+        <p className="mb-8 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          Still scanning {pendingCount} scenario{pendingCount === 1 ? "" : "s"} for AI and API use
+          {usage !== "all" && ", so they're left out of this filter"}. Reload in a minute to scan the next batch.
         </p>
       )}
 
@@ -142,7 +174,10 @@ export default async function Catalog({
                 Next run {new Date(s.nextExec).toLocaleString()}
               </p>
             )}
-            <StatusBadge isActive={s.isActive} isPaused={s.isPaused} dlqCount={s.dlqCount} />
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge isActive={s.isActive} isPaused={s.isPaused} dlqCount={s.dlqCount} />
+              <UsageChips usage={usageIndex.get(s.id)} />
+            </div>
           </Link>
         ))}
       </div>

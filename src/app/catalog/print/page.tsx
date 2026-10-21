@@ -1,6 +1,14 @@
 import { getScenarioFolders, getScenarios, scenarioStatus, type Scenario, type ScenarioFolder } from "@/lib/make";
-import { filterScenarios, groupScenariosByFolder, parseFolderFilter, parseStatusFilter } from "@/lib/catalog";
+import { filterScenarios, groupScenariosByFolder, parseFolderFilter, parseStatusFilter, parseUsageFilter } from "@/lib/catalog";
+import { getUsageIndex, type UsageIndex } from "@/lib/dependency-index";
 import { PrintButton } from "./print-button";
+
+const USAGE_LABELS = {
+  ai: "AI / LLM",
+  api: "custom API calls",
+  any: "AI or API",
+  none: "neither AI nor API",
+} as const;
 
 export default async function CatalogPrint({
   searchParams,
@@ -11,18 +19,21 @@ export default async function CatalogPrint({
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const status = parseStatusFilter(typeof params.status === "string" ? params.status : undefined);
   const folderId = parseFolderFilter(typeof params.folder === "string" ? params.folder : undefined);
+  const usage = parseUsageFilter(typeof params.uses === "string" ? params.uses : undefined);
 
   let scenarios: Scenario[] = [];
   let folders: ScenarioFolder[] = [];
+  let usageIndex: UsageIndex = new Map();
   let error: string | null = null;
 
   try {
     [scenarios, folders] = await Promise.all([getScenarios(), getScenarioFolders()]);
+    if (usage !== "all") usageIndex = await getUsageIndex(scenarios);
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load scenarios from Make.";
   }
 
-  const filtered = filterScenarios(scenarios, q, status, folderId);
+  const filtered = filterScenarios(scenarios, q, status, folderId, usage, usageIndex);
   const groups = groupScenariosByFolder(filtered, folders);
   const activeFolderName = folderId != null ? folders.find((f) => f.id === folderId)?.name : undefined;
 
@@ -45,6 +56,7 @@ export default async function CatalogPrint({
           {q && ` — search "${q}"`}
           {status !== "all" && ` — status: ${status}`}
           {activeFolderName && ` — folder: ${activeFolderName}`}
+          {usage !== "all" && ` — uses: ${USAGE_LABELS[usage]}`}
         </p>
       </div>
 
