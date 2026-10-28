@@ -49,6 +49,7 @@ The catalog and the monitor both read live from the Make.com API rather than fro
 | `MAKE_TEAM_ID`                 | `lib/make.ts`                                           |                                                                                        |
 | `MONITOR_CRON_SECRET`          | `/api/monitor/make`, `/api/monitor/make/digest`         | Shared secret the external scheduler passes as `?secret=`.                             |
 | `MONITOR_INTERVAL_MINUTES`     | `/api/monitor/make`                                     | Optional, default `15`. Must match how often the scheduler calls the endpoint: each check looks back exactly this far, so a mismatch double-alerts or misses failures. |
+| `GCP_SERVICE_ACCOUNT_JSON`     | `lib/cloud-run.ts` (optional)                           | Service account key (raw JSON or base64) with Cloud Run Viewer on each project in `CUSTOM_AUTOMATIONS`. Adds revision, last deploy and scaling to Cloud Run entries; without it they show the health check only. |
 | `SITE_PASSCODE`                | `proxy.ts`, `/api/gate`                                 | Plain passcode for the site gate (server-only). Unset = no gate. Change it to reset: every existing session is signed out on its next request. `/api/discord` and `/api/monitor/make` bypass the gate. |
 
 ## Setup

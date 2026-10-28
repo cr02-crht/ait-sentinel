@@ -34,3 +34,27 @@ export function StatusBadge({
     </span>
   );
 }
+
+// Cloud Run services are either answering their health check or not.
+export function ServiceStatusBadge({ up }: { up: boolean }) {
+  if (up) {
+    return (
+      <span className="inline-flex items-center rounded-md bg-green-50 dark:bg-green-950/50 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">
+        Running
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center rounded-md bg-red-50 dark:bg-red-950/50 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-600/20">
+      Down
+    </span>
+  );
+}
+
+export function SourceBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center rounded-md bg-sky-50 dark:bg-sky-950/50 px-2 py-1 text-xs font-medium text-sky-700 dark:text-sky-400 ring-1 ring-inset ring-sky-600/20">
+      {label}
+    </span>
+  );
+}

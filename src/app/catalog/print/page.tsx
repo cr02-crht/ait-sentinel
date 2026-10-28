@@ -1,6 +1,7 @@
 import { getScenarioFolders, getScenarios, scenarioStatus, type Scenario, type ScenarioFolder } from "@/lib/make";
-import { filterScenarios, groupScenariosByFolder, parseFolderFilter, parseStatusFilter, parseUsageFilter } from "@/lib/catalog";
+import { filterCustomAutomations, filterScenarios, groupScenariosByFolder, parseFolderFilter, parseStatusFilter, parseUsageFilter } from "@/lib/catalog";
 import { getUsageIndex, type UsageIndex } from "@/lib/dependency-index";
+import { getCustomAutomationStates } from "@/lib/cloud-run";
 import { PrintButton } from "./print-button";
 
 const USAGE_LABELS = {
@@ -26,12 +27,14 @@ export default async function CatalogPrint({
   let usageIndex: UsageIndex = new Map();
   let error: string | null = null;
 
+  const customStatesPromise = getCustomAutomationStates();
   try {
     [scenarios, folders] = await Promise.all([getScenarios(), getScenarioFolders()]);
     if (usage !== "all") usageIndex = await getUsageIndex(scenarios);
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load scenarios from Make.";
   }
+  const customStates = filterCustomAutomations(await customStatesPromise, q, status, folderId, usage);
 
   const filtered = filterScenarios(scenarios, q, status, folderId, usage, usageIndex);
   const groups = groupScenariosByFolder(filtered, folders);
@@ -52,13 +55,46 @@ export default async function CatalogPrint({
       <div className="hidden print:block mb-6">
         <h1 className="text-2xl font-bold">Automation Catalog</h1>
         <p className="text-sm text-muted-foreground">
-          Generated {new Date().toLocaleString()} from Make.com
+          Generated {new Date().toLocaleString()} from Make.com and Cloud Run
           {q && ` — search "${q}"`}
           {status !== "all" && ` — status: ${status}`}
           {activeFolderName && ` — folder: ${activeFolderName}`}
           {usage !== "all" && ` — uses: ${USAGE_LABELS[usage]}`}
         </p>
       </div>
+
+      {customStates.length > 0 && (
+        <section className="mb-8 print:break-inside-avoid">
+          <h2 className="text-lg font-semibold text-foreground mb-2 pb-1 border-b border-border">
+            Custom automations (Cloud Run){" "}
+            <span className="text-muted-foreground font-normal">({customStates.length})</span>
+          </h2>
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-border text-left">
+                <th className="py-2 pr-4 font-semibold text-foreground">Name</th>
+                <th className="py-2 pr-4 font-semibold text-foreground">Status</th>
+                <th className="py-2 pr-4 font-semibold text-foreground">Last deployed</th>
+                <th className="py-2 font-semibold text-foreground">Schedules</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customStates.map(({ automation: a, details, status: s }) => (
+                <tr key={a.id} className="border-b border-border/60 align-top">
+                  <td className="py-2 pr-4 text-foreground">{a.name}</td>
+                  <td className="py-2 pr-4 text-muted-foreground">{s === "active" ? "Running" : "Down"}</td>
+                  <td className="py-2 pr-4 text-muted-foreground">
+                    {details ? new Date(details.updatedAt).toLocaleDateString() : "—"}
+                  </td>
+                  <td className="py-2 text-muted-foreground">
+                    {a.schedules.map((sch) => `${sch.name}: ${sch.when}`).join("; ")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
 
       {error && (
         <p className="mb-8 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive print:border-0 print:bg-transparent print:p-0">

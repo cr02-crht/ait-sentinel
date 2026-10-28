@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getScenarioFolders, getScenarios, type Scenario, type ScenarioFolder } from "@/lib/make";
 import {
   catalogQueryString,
+  filterCustomAutomations,
   filterScenarios,
   parseFolderFilter,
   parseStatusFilter,
@@ -10,7 +11,8 @@ import {
   type UsageFilter,
 } from "@/lib/catalog";
 import { getUsageIndex, type UsageIndex } from "@/lib/dependency-index";
-import { StatusBadge } from "@/components/status-badge";
+import { getCustomAutomationStates } from "@/lib/cloud-run";
+import { ServiceStatusBadge, SourceBadge, StatusBadge } from "@/components/status-badge";
 import { UsageChips } from "@/components/dependency-list";
 
 const PAGE_SIZE = 12;
@@ -32,17 +34,21 @@ export default async function Catalog({
   let usageIndex: UsageIndex = new Map();
   let error: string | null = null;
 
+  // Health checks run alongside Make and never throw, so a Make outage still lists them.
+  const customStatesPromise = getCustomAutomationStates();
   try {
     [scenarios, folders] = await Promise.all([getScenarios(), getScenarioFolders()]);
     usageIndex = await getUsageIndex(scenarios);
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load scenarios from Make.";
   }
+  const customStates = await customStatesPromise;
 
   const folderById = new Map(folders.map((f) => [f.id, f]));
   const sortedFolders = [...folders].sort((a, b) => a.name.localeCompare(b.name));
 
   const filtered = filterScenarios(scenarios, q, status, folderId, usage, usageIndex);
+  const filteredCustom = filterCustomAutomations(customStates, q, status, folderId, usage);
   const pendingCount = [...usageIndex.values()].filter((u) => u === "pending").length;
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -65,7 +71,7 @@ export default async function Catalog({
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Automation Catalog</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Live from Make.com — every automation currently built for the team.
+            Live from Make.com and Cloud Run — every automation currently built for the team.
           </p>
         </div>
         <Link
@@ -145,6 +151,39 @@ export default async function Catalog({
           Still scanning {pendingCount} scenario{pendingCount === 1 ? "" : "s"} for AI and API use
           {usage !== "all" && ", so they're left out of this filter"}. Reload in a minute to scan the next batch.
         </p>
+      )}
+
+      {currentPage === 1 && filteredCustom.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+            Custom automations (Cloud Run)
+          </h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredCustom.map(({ automation: a, health, details, status: s }) => (
+              <Link
+                key={a.id}
+                href={`/catalog/cloud-run/${a.id}`}
+                className="block p-6 bg-card rounded-xl shadow-sm border border-border hover:border-ring/50 transition-colors"
+              >
+                <h3 className="text-xl font-semibold mb-2 text-foreground">{a.name}</h3>
+                <p className="text-muted-foreground mb-1 text-sm line-clamp-3">{a.description}</p>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  {health.ok ? `Health check OK in ${health.ms} ms` : `Health check failed: ${health.error ?? `HTTP ${health.httpStatus}`}`}
+                  {details && <> · Deployed {new Date(details.updatedAt).toLocaleDateString()}</>}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <ServiceStatusBadge up={s === "active"} />
+                  <SourceBadge label="Cloud Run" />
+                  <UsageChips usage={a.usage} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!error && filteredCustom.length > 0 && filtered.length > 0 && currentPage === 1 && (
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">Make.com scenarios</h2>
       )}
 
       {!error && scenarios.length === 0 && <p className="text-muted-foreground">No scenarios found for this team.</p>}

@@ -83,7 +83,7 @@ export async function runFailureCheck(): Promise<CheckResult> {
         alerts.push(
           [
             `🔴 **${link(s.name, scenarioUrl(s))}** — ${plural(failed.length, "failed run")} in the last ${interval} min`,
-            ...failed.slice(0, 3).map((f) => `-# ${describeError(f)} · ${when(f.timestamp)} · ${link("View run", runUrl(s, f))}`),
+            ...failed.slice(0, 3).map((f) => `-# ${describeError(xzffzff)} · ${when(f.timestamp)} · ${link("View run", runUrl(s, f))}`),
             ...(switchedOffByMake(s) ? ["⏹️ Make switched this scenario off after the error. It won't run again until someone turns it back on."] : []),
           ].join("\n"),
         );

@@ -45,3 +45,6 @@ next-env.d.ts
 .vercel
 
 .vercel
+
+# Local checkout of the HR bot (has its own repo and secrets)
+/crht-automation-hr-bot/

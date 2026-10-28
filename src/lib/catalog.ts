@@ -1,5 +1,6 @@
 import { scenarioStatus, type Scenario, type ScenarioFolder, type ScenarioStatus } from "./make";
 import type { ScenarioUsage, UsageIndex } from "./dependency-index";
+import type { CustomAutomationState } from "./cloud-run";
 
 export type StatusFilter = "all" | ScenarioStatus;
 
@@ -56,6 +57,22 @@ export function filterScenarios(
     const matchesUsageFilter =
       usage === "all" ? true : scanned != null && scanned !== "pending" && matchesUsage(scanned, usage);
     return matchesQuery && matchesStatus && matchesFolder && matchesUsageFilter;
+  });
+}
+
+// Cloud Run automations aren't in any Make folder, so a folder filter hides them.
+export function filterCustomAutomations(
+  states: CustomAutomationState[],
+  q: string,
+  status: StatusFilter,
+  folderId: number | null,
+  usage: UsageFilter = "all"
+): CustomAutomationState[] {
+  if (folderId != null) return [];
+  return states.filter(({ automation, status: s }) => {
+    const matchesQuery = q ? automation.name.toLowerCase().includes(q.toLowerCase()) : true;
+    const matchesStatus = status === "all" ? true : s === status;
+    return matchesQuery && matchesStatus && matchesUsage(automation.usage, usage);
   });
 }
 
