@@ -17,7 +17,7 @@ Today, `POST /api/intake` does structuring (via `/api/intake/ai-draft`, client-s
 | Step | Module / call | Input | Output |
 |---|---|---|---|
 | 1. Trigger | Registry row created (Status = New) | — | row |
-| 2. Dedup check | Call to Gemini/Claude with the new request's title+goal plus existing registry titles+one-liners | `{new request, existing[]}` | `{possible_duplicates: [row_id, ...]}` |
+| 2. Dedup check | Call to the LLM (self-hosted vLLM, `qwen-27b`) with the new request's title+goal plus existing registry titles+one-liners | `{new request, existing[]}` | `{possible_duplicates: [row_id, ...]}` |
 | 3. Triage | Call with the structured request + a written rubric (see below) | structured request | `{effort: S/M/L, platform: make.com \| hosted, suggested_owner}` |
 | 4. Write back | Update the registry row | triage result | Status → Triaged |
 | 5. Notify | Discord message to PDD channel, @-mention if `platform = hosted` | row | — |

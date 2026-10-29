@@ -177,7 +177,7 @@ footer{color:var(--muted);font-size:.84rem;border-top:1px solid var(--line);padd
       <div class="risk"><span class="pill p-warn">Check</span><p>The error monitor has nothing to watch yet. <code>lib/watched-scenarios.ts</code> is an empty list, so the cron endpoint runs but never alerts. Add scenario IDs there until the registry replaces it.</p></div>
       <div class="risk"><span class="pill p-warn">Decide</span><p>Registry datastore is still open: Notion (the original plan, easy for non-engineers to browse) or Supabase (already a dependency but unused, better for dedup and reconciliation queries). Pick one; the docs advise against building both.</p></div>
       <div class="risk"><span class="pill p-off">Note</span><p>Nothing persists yet. Intake submissions go to Discord only, and the catalog reads live from the Make.com API on every page load with no cache.</p></div>
-      <div class="risk"><span class="pill p-off">Note</span><p>AI features run on Google Gemini (<code>gemini-3.1-flash-lite-preview</code>), not Claude. This is a deliberate departure from the original plan.</p></div>
+      <div class="risk"><span class="pill p-off">Note</span><p>AI features run on a self-hosted AI server (<code>qwen-27b</code>) over its OpenAI-compatible API, with thinking disabled. This is a deliberate departure from the original plan.</p></div>
     </div>
   </section>
 

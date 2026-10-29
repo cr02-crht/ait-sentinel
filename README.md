@@ -28,8 +28,8 @@ The catalog and the monitor both read live from the Make.com API rather than fro
 
 ## Architecture
 
-- **Next.js (App Router)** — the whole thing, including the "AI proxy" role: API routes call Gemini directly rather than through a separate Cloudflare Worker.
-- **Google Gemini** (`gemini-3.1-flash-lite-preview` via `@ai-sdk/google`) — powers the intake draft assistant, the build-copilot chat endpoint, and the Discord `/triage` command. Not Claude — a divergence from the original plan, kept as-is unless there's a reason to switch.
+- **Next.js (App Router)** — the whole thing, including the "AI proxy" role: API routes call the self-hosted LLM directly rather than through a separate Cloudflare Worker.
+- **Self-hosted vLLM** (`qwen-27b` via `@ai-sdk/openai-compatible`) — powers the intake draft assistant, the build-copilot chat endpoint, and the Discord `/triage` command. Thinking mode is disabled per request via `chat_template_kwargs.enable_thinking`, so responses stay fast and the draft JSON is clean.
 - **Discord** — the interaction surface for alerts (`/api/discord` handles slash commands; `lib/discord.ts` sends channel messages and interaction follow-ups).
 - **Make.com** — the automation host being read from (`lib/make.ts`) for the catalog and the error monitor. Not yet the trigger source for a registry pipeline (see [MAKECOM-WIRING.md](MAKECOM-WIRING.md)).
 - **No database yet.** `@supabase/supabase-js` is a dependency but unused — worth deciding explicitly whether the registry lands in Supabase (it's already in `package.json`) or Notion (the original plan) before building it. See the note in [NOTION-SCHEMA.md](NOTION-SCHEMA.md).
@@ -38,7 +38,9 @@ The catalog and the monitor both read live from the Make.com API rather than fro
 
 | Variable                       | Required by                                             | Notes                                                                                  |
 | ------------------------------ | ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | `/api/chat`, `/api/intake/ai-draft`, `/api/discord`     | Default env var name read by `@ai-sdk/google`.                                         |
+| `LLM_BASE_URL`                 | `/api/chat`, `/api/intake/ai-draft`, `/api/discord`     | OpenAI-compatible base URL of the vLLM server, including `/v1`. Defaults to `https://34.9.243.227/v1`. |
+| `LLM_API_KEY`                  | `/api/chat`, `/api/intake/ai-draft`, `/api/discord`     | Bearer token sent to the vLLM server.                                                  |
+| `LLM_MODEL`                    | `/api/chat`, `/api/intake/ai-draft`, `/api/discord`     | Model name served by vLLM. Defaults to `qwen-27b`.                                     |
 | `DISCORD_BOT_TOKEN`            | `lib/discord.ts`, `/api/intake`                         | Bot token, used with `Authorization: Bot ...`.                                         |
 | `DISCORD_ALERT_CHANNEL_ID`     | `/api/intake`, `/api/monitor/make`                      | Channel that receives new-request and failure alerts.                                  |
 | `DISCORD_PUBLIC_KEY`           | `/api/discord`                                          | Verifies Discord interaction signatures.                                               |
