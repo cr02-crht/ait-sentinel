@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { verifyKey } from "discord-interactions";
-import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
+import { llmModel } from "@/lib/llm";
 import { sendInteractionFollowup } from "@/lib/discord";
 import { getScenarioFolders, getScenarios, scenarioStatus } from "@/lib/make";
 import { groupScenariosByFolder } from "@/lib/catalog";
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       "unspecified automation";
     const details = options.find((o) => o.name === "details")?.value ?? "";
 
-    // Gemini can take longer than Discord's 3-second ack window, so we defer
+    // The model can take longer than Discord's 3-second ack window, so we defer
     // now (type 5) and patch the real answer in once runTriage finishes.
     // after() keeps the serverless function alive until this completes —
     // without it, Vercel can freeze the function the instant the response
@@ -148,7 +148,7 @@ async function runTriage(
 ) {
   try {
     const { text } = await generateText({
-      model: google("gemini-3.1-flash-lite-preview"),
+      model: llmModel,
       system:
         "You triage broken internal automations for PDD. Given the automation's name and a description of what's wrong, respond with exactly three short lines, no preamble: " +
         "Severity (low/medium/high), Likely cause, and Summary — one sentence each.",

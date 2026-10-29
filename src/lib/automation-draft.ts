@@ -1,5 +1,5 @@
-import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
+import { llmModel } from "@/lib/llm";
 
 export type AutomationDraftSpec = {
   title?: string;
@@ -37,7 +37,7 @@ export async function draftAutomationSpec(
   prompt: string,
 ): Promise<AutomationDraftSpec> {
   const { text } = await generateText({
-    model: google("gemini-3.1-flash-lite-preview"),
+    model: llmModel,
     system: SYSTEM_PROMPT,
     prompt: `Automation Idea/Requirement:\n${prompt}`,
   });
